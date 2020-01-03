@@ -8,13 +8,14 @@
     :init
     (load (expand-file-name "~/quicklisp/slime-helper.el"))
     :bind
-    (("C-c C-v C-v" . slime-vari-describe-symbol))
+    (("C-c C-v C-v" . slime-vari-describe-symbol)
+     ("M-s" . paredit-splice-sexp))
     :config
     (setq slime-lisp-implementations
-	  '((sbcl  ("~/Programs/optirun-sbcl.sh") :coding-system utf-8-unix)
+	  '(;; (sbcl  ("~/Programs/optirun-sbcl.sh") :coding-system utf-8-unix)
             ;; (sbcl "--dynamic-space-size" "2GB")
-            ;; (sbcl  ("sbcl") :coding-system utf-8-unix)
-	    ;; (ccl   ("~/Programs/ccl/lx86cl64"))
+             (sbcl  ("sbcl") :coding-system utf-8-unix)
+	    ;;(ccl   ("~/Programs/ccl/lx86cl64"))
             )
 	  slime-net-coding-system 'utf-8-unix
           slime-inhibit-pipelining nil
@@ -29,10 +30,12 @@
   (paredit-mode +1)  
   (column-marker-3 80)
   (setq indent-tabs-mode nil)
-  (whitespace-mode 1))
+  (whitespace-mode 1)
+  )
 
 (defun my-lisp-repl-hook ()
-  (paredit-mode +1))
+  (paredit-mode +1)
+  (define-key slime-repl-mode-map (kbd "M-s") 'paredit-splice-sexp))
 
 ;; (load "/home/baggers/quicklisp/clhs-use-local.el" t)
 
@@ -68,3 +71,17 @@
          (swank-backend:macroexpand-all
           (swank::from-string
            ',(slime-sexp-at-point-or-error)))))))
+
+
+;; (defun sldb-inspect-condition-data ()
+;;   "Inspect the current debugger condition."
+;;   (interactive)
+;;   (slime-eval-async
+;;       '(swank::with-buffer-syntax
+;;         ()
+;;         (swank::reset-inspector)
+;;         (swank::inspect-object
+;;          (cl:simple-condition-format-arguments 
+;;           *swank-debugger-condition*)))
+;;     'slime-open-inspector))
+;; (define-key sldb-mode-map (kbd "D") 'sldb-inspect-condition-data)

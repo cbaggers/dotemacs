@@ -46,6 +46,7 @@
 (load-user-file "init/rcirc.el")
 (load-user-file "init/sql.el")
 (load-user-file "init/tmp-files.el")
+(load-user-file "init/tramp.el")
 (load-user-file "init/twitter.el")
 (load-user-file "init/uno.el")
 (load-user-file "init/version-control.el")
@@ -76,7 +77,7 @@
      ("melpa" . "https://stable.melpa.org/packages/"))))
  '(package-selected-packages
    (quote
-    (markdown-mode yasnippet company-omnisharp company omnisharp :omnisharp flycheck docker ac-slime auto-complete auto-complete-config magit csharp-mode column-marker avy editorconfig multiple-cursors use-package paredit exwm))))
+    (idris-mode php-mode psysh flycheck-tip markdown-mode yasnippet company-omnisharp company omnisharp :omnisharp flycheck docker ac-slime auto-complete auto-complete-config magit csharp-mode column-marker avy editorconfig multiple-cursors use-package paredit exwm))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
