@@ -67,7 +67,8 @@
         "-remsh" "vanguard@vanguard0.com"
         "-proto_dist" "epmdless_proto"
         "-epmd_module" "epmdless_client"
-        "-pa" "/app/_build/default/lib/epmdless/ebin/"))
+        ;;"-pa" "/app/_build/default/lib/epmdless/ebin/"
+        "-pa" "/app/lib/epmdless-0.1.4/ebin"))
 
 (defun kill-erlang-repl-node ()
   (interactive)
@@ -90,7 +91,3 @@
 
 (defun my-erlang-mode-hook ()
   (flycheck-mode))
-
-
-
-
