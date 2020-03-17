@@ -43,32 +43,87 @@
 
 (defun my-erlang-edit-hook ()
   (paredit-mode +1)
-  (my/disable-paredit-spaces-before-paren))
+  (my/disable-paredit-spaces-before-paren)
+  (define-key erlang-mode-map "\C-c\C-k" 'set-erl-options-and-compile))
 
 ;;------------------------------------------------------------
 
 ;; prevent annoying hang-on-compile
 (defvar inferior-erlang-prompt-timeout t)
 
-;; (setq inferior-erlang-machine-options
-;;       '("-name" "emacs@vanguard0.com"
-;;         "-setcookie" "cookie"
-;;         "-remsh" "vanguard@vanguard0.com"))
-
 ;; Note: We use hidden here so that erlang:rpc doesnt include the
 ;;       shell by default. This matters as that node definitely
 ;;       will not have the app code loaded
-(setq inferior-erlang-machine-options
-      '("-env" "EPMDLESS_DIST_PORT" "18999"
-        "-env" "EPMDLESS_REMSH_PORT" "18000"
-        "-name" "emacs@vanguard0.com"
-        "-hidden"
-        "-setcookie" "cookie"
-        "-remsh" "vanguard@vanguard0.com"
-        "-proto_dist" "epmdless_proto"
-        "-epmd_module" "epmdless_client"
-        ;;"-pa" "/app/_build/default/lib/epmdless/ebin/"
-        "-pa" "/app/lib/epmdless-0.1.4/ebin"))
+
+(defun set-erl-options ()
+  (interactive)
+  (let* ((remote (or (file-remote-p default-directory) ""))
+         (vm-args-path-a
+          (concat remote
+                  "/app/_build/prod/rel/vanguard/releases/0.1.0/vm.args"))
+         (vm-args-path-b
+          (concat remote
+                  "/app/releases/0.1.0/vm.args"))
+         (vm-args-path
+          (cond
+           ((file-exists-p vm-args-path-a) vm-args-path-a)
+           ((file-exists-p vm-args-path-b) vm-args-path-b)))
+         (name-line
+          (with-temp-buffer
+            (insert-file-contents vm-args-path nil nil nil t)
+            (cl-find-if (lambda (str) (string-prefix-p "-name" str))
+                        (split-string (buffer-string) "\n" t))))
+         (cookie-line
+          (with-temp-buffer
+            (insert-file-contents vm-args-path nil nil nil t)
+            (cl-find-if (lambda (str) (string-prefix-p "-setcookie" str))
+                        (split-string (buffer-string) "\n" t))))
+         (epmdless-path-a
+          "/app/_build/default/lib/epmdless/ebin/")
+         (epmdless-path-b
+          "/app/lib/epmdless-0.1.4/ebin")
+         (epmdless-path
+          (cond
+           ((file-exists-p (concat remote epmdless-path-a))
+            epmdless-path-a)
+           ((file-exists-p (concat remote epmdless-path-b))
+            epmdless-path-b))))
+    (cond
+     ((not vm-args-path)
+      (message "FAILED TO SET ERL OPTIONS: couldnt find vm-args path %s"
+               remote))
+     ((not epmdless-path)
+      (message "FAILED TO SET ERL OPTIONS: couldnt find epmdless path %s"
+               remote)
+      nil)
+     ((not cookie-line)
+      (message "FAILED TO SET ERL OPTIONS: couldnt find cookie")
+      nil)
+     ((not name-line)
+      (message "FAILED TO SET ERL OPTIONS: couldnt find name")
+      nil)
+     (t (let ((cookie (second (split-string cookie-line " " t)))
+              (name (second (split-string name-line " " t))))
+          (setq inferior-erlang-machine-options
+                (list
+                 "-env" "EPMDLESS_DIST_PORT" "18999"
+                 "-env" "EPMDLESS_REMSH_PORT" "18000"
+                 "-name" "emacs@vanguard0.com"
+                 "-hidden"
+                 "-setcookie" cookie
+                 "-remsh" name
+                 "-proto_dist" "epmdless_proto"
+                 "-epmd_module" "epmdless_client"
+                 "-pa" epmdless-path))
+          (message "hmm %s" inferior-erlang-machine-options)
+          t)))))
+
+(defun set-erl-options-and-compile ()
+  (interactive)
+  (unless (get-buffer "*erlang*")
+    (message "=> Setting erlang options")
+    (set-erl-options))
+  (erlang-compile))
 
 (defun kill-erlang-repl-node ()
   (interactive)
@@ -77,10 +132,11 @@
 ;;------------------------------------------------------------
 
 (use-package flierl
-  :bind ((:map erlang-mode-hook
+  :bind  (:map erlang-mode-map
                ("C-c C-c" . flycheck-buffer)
+               ("C-c C-k" . set-erl-options-and-compile)
                ("M-p" . flycheck-previous-error)
-               ("M-n" . flycheck-next-error)))
+               ("M-n" . flycheck-next-error))
   :config
   (flierl-setup)
   (add-hook 'erlang-mode-hook 'my-erlang-mode-hook)
