@@ -64,10 +64,14 @@
          (vm-args-path-b
           (concat remote
                   "/app/releases/0.1.0/vm.args"))
+         (vm-args-path-c
+          (concat remote
+                  "/app/_build/debug/rel/vanguard/releases/0.1.0/vm.args"))
          (vm-args-path
           (cond
            ((file-exists-p vm-args-path-a) vm-args-path-a)
-           ((file-exists-p vm-args-path-b) vm-args-path-b)))
+           ((file-exists-p vm-args-path-b) vm-args-path-b)
+           ((file-exists-p vm-args-path-c) vm-args-path-c)))
          (name-line
           (with-temp-buffer
             (insert-file-contents vm-args-path nil nil nil t)
@@ -87,7 +91,7 @@
            ((file-exists-p (concat remote epmdless-path-a))
             epmdless-path-a)
            ((file-exists-p (concat remote epmdless-path-b))
-            epmdless-path-b))))
+            epmdless-path-b))))    
     (cond
      ((not vm-args-path)
       (message "FAILED TO SET ERL OPTIONS: couldnt find vm-args path %s"
